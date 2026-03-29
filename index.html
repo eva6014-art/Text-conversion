@@ -5,121 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>手寫單據轉 Excel 工具</title>
     <style>
-        body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 30px auto;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-        main {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .upload-section, .result-section {
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        input[type="file"] {
-            display: none;
-        }
-        .custom-file-upload {
-            display: inline-block;
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #3498db;
-            color: #fff;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .custom-file-upload:hover {
-            background-color: #2980b9;
-        }
-        .image-preview {
-            margin: 15px 0;
-            border: 2px dashed #ccc;
-            height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            background-color: #fff;
-        }
-        .image-preview img {
-            max-width: 100%;
-            max-height: 100%;
-        }
-        .convert-btn {
-            padding: 10px 20px;
-            font-size: 1.1em;
-            cursor: pointer;
-            background-color: #27ae60;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            transition: background 0.3s;
-            width: 100%;
-        }
-        .convert-btn:hover:not(:disabled) {
-            background-color: #219150;
-        }
-        .convert-btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-        textarea {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
-            resize: vertical;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .action-btn {
-            padding: 8px 15px;
-            cursor: pointer;
-            background-color: #95a5a6;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            flex: 1;
-        }
-        .action-btn.primary {
-            background-color: #f39c12;
-        }
-        .action-btn.primary:hover {
-            background-color: #e67e22;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #777;
-            font-size: 0.9em;
-        }
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; line-height: 1.6; margin: 0; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 800px; margin: 30px auto; background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
+        header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .upload-section, .result-section, .api-section { padding: 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 20px; }
+        input[type="file"] { display: none; }
+        input[type="password"] { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .custom-file-upload { display: inline-block; padding: 10px 20px; cursor: pointer; background-color: #3498db; color: #fff; border-radius: 4px; }
+        .image-preview { margin: 15px 0; border: 2px dashed #ccc; height: 250px; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #fff; }
+        .image-preview img { max-width: 100%; max-height: 100%; }
+        .convert-btn { padding: 10px 20px; font-size: 1.1em; cursor: pointer; background-color: #27ae60; color: #fff; border: none; border-radius: 4px; width: 100%; }
+        .convert-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        textarea { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; resize: vertical; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        .action-btn { padding: 8px 15px; cursor: pointer; background-color: #95a5a6; color: #fff; border: none; border-radius: 4px; flex: 1; }
+        .action-btn.primary { background-color: #f39c12; }
     </style>
 </head>
 <body>
@@ -130,10 +30,13 @@
         </header>
 
         <main>
+            <section class="api-section">
+                <label for="apiKey"><strong>設定 OpenAI API Key (僅儲存於本地瀏覽器)</strong></label>
+                <input type="password" id="apiKey" placeholder="請輸入 sk- 開頭的 API Key">
+            </section>
+
             <section class="upload-section">
-                <label for="imageUpload" class="custom-file-upload">
-                    選擇圖片檔
-                </label>
+                <label for="imageUpload" class="custom-file-upload">選擇圖片檔</label>
                 <input type="file" id="imageUpload" accept="image/*">
                 <div id="imagePreviewContainer" class="image-preview">
                     <img id="imagePreview" src="#" alt="圖片預覽" style="display:none;">
@@ -151,13 +54,10 @@
                 </div>
             </section>
         </main>
-
-        <footer>
-            <p>&copy; 2026 Bill Converter Demo</p>
-        </footer>
     </div>
 
     <script>
+        const apiKeyInput = document.getElementById('apiKey');
         const imageUpload = document.getElementById('imageUpload');
         const imagePreview = document.getElementById('imagePreview');
         const previewText = document.getElementById('previewText');
@@ -165,8 +65,15 @@
         const resultText = document.getElementById('resultText');
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
+        
+        let base64ImageString = "";
 
-        // 圖片上傳預覽
+        // 讀取本地儲存的 API Key
+        if(localStorage.getItem('myApiKey')) {
+            apiKeyInput.value = localStorage.getItem('myApiKey');
+        }
+
+        // 圖片上傳預覽與轉換 Base64
         imageUpload.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -176,42 +83,75 @@
                     imagePreview.style.display = 'block';
                     previewText.style.display = 'none';
                     convertBtn.disabled = false;
+                    base64ImageString = e.target.result;
                 }
                 reader.readAsDataURL(file);
             }
         });
 
-        // 模擬轉換過程
-        convertBtn.addEventListener('click', function() {
-            resultText.value = "AI 辨識中，請稍候...";
+        // 呼叫 OpenAI API
+        convertBtn.addEventListener('click', async function() {
+            const apiKey = apiKeyInput.value.trim();
+            if(!apiKey) {
+                alert("請先輸入 OpenAI API Key！");
+                return;
+            }
+            
+            // 將 Key 存入瀏覽器，下次不用重輸
+            localStorage.setItem('myApiKey', apiKey);
+
+            resultText.value = "AI 努力辨識中，大約需要 10~20 秒，請稍候...";
             convertBtn.textContent = "辨識中...";
             convertBtn.disabled = true;
 
-            // 模擬 API 延遲與回傳結果 (此處為假資料示範)
-            setTimeout(() => {
-                const mockResult = `店名\t日期\t規格\t品名\t數量\t單價\t金額\t備註
-鈺泉\t3/2\tPP雙亮\t花間集盒 1465"彩盒\t3102\t0.65\t2016\t連PP
-鎮德旺\t3/2\tPP雙亮\t芋香綜合酥\t4226\t0.5\t2113\t連PP
-創映\t3/2\t白卡\tK5678 彩盒\t1051\t\t1500\t連PP包整包 7x5`;
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-4o",
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    { type: "text", text: "請將這張圖片中的表格轉換成純文字，欄位之間使用 Tab 鍵分隔（以便直接貼入 Excel）。請直接輸出表格內容，不要輸出任何解釋文字，也不要使用 ``` 等程式碼區塊包裝。" },
+                                    { type: "image_url", image_url: { url: base64ImageString } }
+                                ]
+                            }
+                        ],
+                        max_tokens: 1500
+                    })
+                });
 
-                resultText.value = mockResult;
+                const data = await response.json();
+                
+                if(data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                resultText.value = data.choices[0].message.content;
+
+            } catch (error) {
+                resultText.value = "辨識發生錯誤：\n" + error.message;
+            } finally {
                 convertBtn.textContent = "開始轉換";
                 convertBtn.disabled = false;
-            }, 1500);
-        });
-
-        // 一鍵複製功能
-        copyBtn.addEventListener('click', function() {
-            if (resultText.value && resultText.value !== "AI 辨識中，請稍候...") {
-                resultText.select();
-                document.execCommand('copy');
-                alert("內容已複製！可以直接到 Excel 貼上。");
-            } else {
-                alert("目前沒有可複製的內容。");
             }
         });
 
-        // 清除功能
+        // 一鍵複製
+        copyBtn.addEventListener('click', function() {
+            if (resultText.value && !resultText.value.includes("辨識發生錯誤")) {
+                resultText.select();
+                document.execCommand('copy');
+                alert("內容已複製！可以直接到 Excel 貼上。");
+            }
+        });
+
+        // 清除
         clearBtn.addEventListener('click', function() {
             imagePreview.src = "#";
             imagePreview.style.display = 'none';
@@ -219,8 +159,8 @@
             resultText.value = "";
             imageUpload.value = "";
             convertBtn.disabled = true;
+            base64ImageString = "";
         });
     </script>
 </body>
 </html>
-
