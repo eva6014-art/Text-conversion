@@ -109,7 +109,7 @@
             convertBtn.disabled = true;
 
             // Gemini 1.5 Flash 模型的 API 端點
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
             // 構建請求主體 (符合 Gemini API 格式)
             const prompt = "請仔細辨識這張圖片中的手寫表格，並將其轉換成純文字表格格式。欄位之間必須使用「Tab 鍵」分隔，以便我直接複製並貼上到 Excel。請直接輸出表格內容，不要包含額外的說明文字、標題或程式碼區塊符號（如 ```）。";
