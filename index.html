@@ -109,9 +109,9 @@
             convertBtn.disabled = true;
 
             // Gemini 2.5 flash 模型的 API 端點
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
             // 構建請求主體 (符合 Gemini API 格式)
-            const prompt = "請仔細辨識這張圖片中的手寫表格，並將其轉換成純文字表格格式。欄位之間必須使用「Tab 鍵」分隔，以便我直接複製並貼上到 Excel。請直接輸出表格內容，不要包含額外的說明文字、標題或程式碼區塊符號（如 ```）。";
+            const prompt = "你是一個精準的資料輸入員。請辨識圖片中的手寫表格，轉換為純文字表格。欄位之間必須使用「Tab 鍵」分隔。這是一份包裝印刷與加工的相關單據，請注意以下常見字眼，若遇到字跡模糊請優先以這些詞彙校對：PP雙亮、白底PP、白卡、彩盒、基本費、連PP、包整包、用草繩、果凍膠。請直接輸出內容，不要包含 ``` 等標籤或任何解釋。";
 
             const payload = {
                 contents: [{
