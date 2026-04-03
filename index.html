@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>手寫單據轉 Excel 工具 (Google Gemini 版)</title>
+    <title>智慧單據轉 Excel 工具</title>
     <style>
         body { font-family: "Microsoft JhengHei", Arial, sans-serif; line-height: 1.6; margin: 0; background-color: #f4f4f4; color: #333; }
         .container { max-width: 800px; margin: 30px auto; background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
         header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .api-section, .upload-section, .result-section { padding: 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .api-section, .options-section, .upload-section, .result-section { padding: 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 20px; }
         input[type="file"] { display: none; }
-        input[type="password"] { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="password"], select { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
         .custom-file-upload { display: inline-block; padding: 10px 20px; cursor: pointer; background-color: #3498db; color: #fff; border-radius: 4px; }
         .image-preview { margin: 15px 0; border: 2px dashed #ccc; height: 250px; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #fff; }
         .image-preview img { max-width: 100%; max-height: 100%; }
@@ -25,14 +25,22 @@
 <body>
     <div class="container">
         <header>
-            <h1>手寫單據轉 Excel 工具</h1>
-            <p>使用 Google Gemini AI 將手寫表格照片轉換為純文字，直接複製貼入 Excel。</p>
+            <h1>智慧單據轉 Excel 工具</h1>
+            <p>支援手寫表格與電子發票，自動轉換為純文字格式，一鍵複製貼入 Excel。</p>
         </header>
 
         <main>
             <section class="api-section">
-                <label for="apiKey"><strong>設定 Google AI Studio API Key (僅儲存於本地瀏覽器)</strong></label>
+                <label for="apiKey"><strong>設定 Google API Key (僅儲存於本地)</strong></label>
                 <input type="password" id="apiKey" placeholder="請輸入 AIzaSy 開頭的 API Key">
+            </section>
+
+            <section class="options-section">
+                <label for="docType"><strong>選擇單據類型：</strong></label>
+                <select id="docType">
+                    <option value="table">手寫表格 (進銷存 / 包裝印刷)</option>
+                    <option value="receipt">電子發票 / 交易明細</option>
+                </select>
             </section>
 
             <section class="upload-section">
@@ -58,6 +66,7 @@
 
     <script>
         const apiKeyInput = document.getElementById('apiKey');
+        const docTypeSelect = document.getElementById('docType');
         const imageUpload = document.getElementById('imageUpload');
         const imagePreview = document.getElementById('imagePreview');
         const previewText = document.getElementById('previewText');
@@ -66,52 +75,53 @@
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
         
-        // 用於儲存 Gemini API 需要的純 Base64 資料與 MIME 類型
         let base64DataOnly = "";
         let imageMimeType = "";
 
-        // 讀取本地儲存的 API Key
         if(localStorage.getItem('myGoogleApiKey')) {
             apiKeyInput.value = localStorage.getItem('myGoogleApiKey');
         }
 
-        // 圖片上傳預覽與轉換處理
         imageUpload.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
-                imageMimeType = file.type; // 例如 image/jpeg 或 image/png
+                imageMimeType = file.type;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     imagePreview.src = e.target.result;
                     imagePreview.style.display = 'block';
                     previewText.style.display = 'none';
                     convertBtn.disabled = false;
-                    // 取得完整的 Data URL (data:image/jpeg;base64,...)
                     const fullBase64 = e.target.result;
-                    // 分割出純 Base64 資料部分
                     base64DataOnly = fullBase64.split(',')[1];
                 }
                 reader.readAsDataURL(file);
             }
         });
 
-        // 呼叫 Google Gemini API
         convertBtn.addEventListener('click', async function() {
             const apiKey = apiKeyInput.value.trim();
+            const docType = docTypeSelect.value;
+
             if(!apiKey) { alert("請先輸入 Google API Key！"); return; }
             if(!base64DataOnly) { alert("請先選擇圖片！"); return; }
             
-            // 將 Key 存入本地儲存區，下次不用重輸
             localStorage.setItem('myGoogleApiKey', apiKey);
 
-            resultText.value = "Google AI 努力辨識中，大約需要 10~20 秒，請稍候...";
+            resultText.value = "高階 AI 模型努力辨識中，大約需要 15~30 秒，請稍候...";
             convertBtn.textContent = "辨識中...";
             convertBtn.disabled = true;
 
-            // Gemini 2.5 flash 模型的 API 端點
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
-            // 構建請求主體 (符合 Gemini API 格式)
-            const prompt = "你是一個精準的資料輸入員。請辨識圖片中的手寫表格，轉換為純文字表格。欄位之間必須使用「Tab 鍵」分隔。這是一份包裝印刷與加工的相關單據，請注意以下常見字眼，若遇到字跡模糊請優先以這些詞彙校對：PP雙亮、白底PP、白卡、彩盒、基本費、連PP、包整包、用草繩、果凍膠。請直接輸出內容，不要包含 ``` 等標籤或任何解釋。";
+            // 使用準確度更高的 Pro 模型
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
+
+            // 根據下拉選單決定提示詞
+            let prompt = "";
+            if (docType === 'table') {
+                prompt = "你是一個精準的資料輸入員。請辨識圖片中的手寫表格，轉換為純文字表格。欄位之間必須使用「Tab 鍵」分隔。這是一份包裝印刷與加工的相關單據，請注意以下常見字眼，若遇到字跡模糊請優先以這些詞彙校對：PP雙亮、白底PP、白卡、彩盒、基本費、連PP、包整包、用草繩、果凍膠。請直接輸出表格內容，不要包含 ``` 等標籤或任何解釋。";
+            } else if (docType === 'receipt') {
+                prompt = "你是一個精準的資料提取員。請辨識圖片中的電子發票或交易明細，提取商品資訊並整理成純文字表格。欄位之間必須使用「Tab 鍵」分隔。請建立以下欄位：商品名稱、數量、單價、總金額、折扣。若無折扣則留空。請直接輸出表格內容，不要輸出任何解釋文字，也不要使用 ``` 等標籤。";
+            }
 
             const payload = {
                 contents: [{
@@ -136,11 +146,8 @@
 
                 const data = await response.json();
                 
-                if(data.error) {
-                    throw new Error(data.error.message || JSON.stringify(data.error));
-                }
+                if(data.error) throw new Error(data.error.message || JSON.stringify(data.error));
 
-                // Gemini 成功回傳的文字路徑：data.candidates[0].content.parts[0].text
                 if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
                     resultText.value = data.candidates[0].content.parts[0].text;
                 } else {
@@ -148,14 +155,13 @@
                 }
 
             } catch (error) {
-                resultText.value = "辨識發生錯誤：\n" + error.message + "\n\n請確認 API Key 是否正確且具有 Gemini API 權限，或是圖片格式是否支援。";
+                resultText.value = "辨識發生錯誤：\n" + error.message;
             } finally {
                 convertBtn.textContent = "開始轉換";
                 convertBtn.disabled = false;
             }
         });
 
-        // 一鍵複製
         copyBtn.addEventListener('click', function() {
             if (resultText.value && !resultText.value.includes("辨識發生錯誤")) {
                 resultText.select();
@@ -164,7 +170,6 @@
             }
         });
 
-        // 清除
         clearBtn.addEventListener('click', function() {
             imagePreview.src = "#";
             imagePreview.style.display = 'none';
